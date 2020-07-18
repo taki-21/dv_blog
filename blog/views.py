@@ -1,6 +1,7 @@
 from rest_framework import generics, pagination, response
 from .models import Post, Category
 from .serializers import CategorySerializer, PostSerializer, SimplePostSerializer
+from django.db.models import Q
 
 
 class StandardResultSetPagination(pagination.PageNumberPagination):
@@ -19,6 +20,7 @@ class StandardResultSetPagination(pagination.PageNumberPagination):
             'range_last': min((self.page.number * self.page_size), self.page.paginator.count),
         })
 
+
 class CategoryList(generics.ListAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -28,6 +30,20 @@ class PostList(generics.ListAPIView):
     queryset = Post.objects.all()
     serializer_class = SimplePostSerializer
     pagination_class = StandardResultSetPagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        keyword = self.request.query_params.get('keyword', None)
+        if keyword:
+            queryset = queryset.filter(
+                Q(title__icontains=keyword) | Q(lead_text__icontains=keyword) | Q(main_text__icontains=keyword))
+
+        category = self.request.query_params.get('category', None)
+        if category:
+            queryset = queryset.filter(category=category)
+
+        return queryset
 
 
 class PostDetail(generics.RetrieveAPIView):
