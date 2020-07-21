@@ -9,3 +9,4 @@ urlpatterns = [
     path('api/posts/<int:pk>/', views.PostDetail.as_view(), name='post_detail'),
     path('api/categories/', views.CategoryList.as_view(), name='category_list')
 ]
+
